@@ -1,0 +1,36 @@
+package com.ecxls.integral.util.ip;
+
+import java.util.concurrent.Callable;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.ecxls.integral.util.httpclient.HttpUtils;
+import com.ecxls.integral.util.threadpool.TaskExecutor;
+
+/**
+ *  根据IP地址获取详细的地域信息
+ * 
+ */
+public class AddressUtil { 
+	 /**淘宝IP库*/
+	 private static final String TAOBAO_IP_URL = "http://ip.taobao.com/service/getIpInfo2.php?ip=";
+
+	 public static String getAddreByTaoBao(String ip) throws Exception {
+		if (StringUtils.isBlank(ip)) new NullPointerException("ip cannot be null");
+		return TaskExecutor.getInstance().submit(new Callable<String>() {
+
+			@Override
+			public String call() throws Exception {
+				 return HttpUtils.connection(TAOBAO_IP_URL + ip, HttpUtils.GET);
+			}
+			
+		 }).get();
+ 
+	 }
+	 
+	 public static void main(String[] args) throws Exception {
+			 String result = getAddreByTaoBao("120.79.67.184");
+			 System.out.println(result);
+	 }
+
+}

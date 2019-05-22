@@ -1,0 +1,88 @@
+package com.ecxls.integral.redis;
+
+import java.lang.reflect.Method;
+import java.net.UnknownHostException;
+import java.time.Duration;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
+
+@Configuration
+@EnableCaching
+public class RedisConfiguration {
+	
+	@Bean
+    @ConditionalOnMissingBean(name = "redisTemplate")
+    public RedisTemplate<Object, Object> redisTemplate(
+            RedisConnectionFactory redisConnectionFactory)
+                    throws UnknownHostException {
+        RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<Object, Object>();
+        FastJsonRedisSerializer fastJsonRedisSerializer = new FastJsonRedisSerializer(Object.class);
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+        /*redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());*/
+        redisTemplate.setHashValueSerializer(fastJsonRedisSerializer);
+        redisTemplate.setValueSerializer(fastJsonRedisSerializer);
+
+        return redisTemplate;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(StringRedisTemplate.class)
+    public StringRedisTemplate stringRedisTemplate(
+            RedisConnectionFactory redisConnectionFactory)
+                    throws UnknownHostException {
+        StringRedisTemplate redisTemplate = new StringRedisTemplate();
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+        return redisTemplate;
+    }
+    
+    @Bean
+    public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
+    	RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig();
+    	config = config.entryTtl(Duration.ofMinutes(43200))     // 设置缓存的默认过期时间，也是使用Duration设置
+                .disableCachingNullValues();
+    	RedisCacheManager cacheManager = RedisCacheManager.builder(redisConnectionFactory)     // 使用自定义的缓存配置初始化一个cacheManager
+                .build();
+    	//RedisCacheManager.create(redisConnectionFactory);
+        return cacheManager;
+    }
+    
+    /**
+     * @description 自定义的缓存key的生成策略
+     *              如果想使用这个key  只需要讲注解上keyGenerator的值设置为keyGenerator即可</br>
+     * @return 自定义策略生成的key
+     */
+    @Bean
+    public KeyGenerator keyGenerator() {
+        return new KeyGenerator(){
+            @Override
+            public Object generate(Object target, Method method, Object... params) {
+                StringBuffer sb = new StringBuffer();
+                sb.append(target.getClass().getName());
+                sb.append(method.getName());
+                for(Object obj:params){
+                    sb.append(obj.toString());
+                }
+                return sb.toString();
+           }
+        };
+    }
+    
+
+
+}

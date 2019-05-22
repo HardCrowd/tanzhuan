@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="integral-admin-params" />
+        <module name="integral-admin-barrage" />
+        <module name="ecxls-util" />
+        <module name="integral-admin-web" />
+        <module name="integral-admin-api" />
+        <module name="integral-admin-service" />
+        <module name="integral-admin-persistent" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="ecxls-core" target="1.8" />
+      <module name="ecxls-util" target="1.8" />
+      <module name="integral-admin" target="1.8" />
+      <module name="integral-admin-api" target="1.8" />
+      <module name="integral-admin-barrage" target="1.8" />
+      <module name="integral-admin-params" target="1.8" />
+      <module name="integral-admin-persistent" target="1.8" />
+      <module name="integral-admin-service" target="1.8" />
+      <module name="integral-admin-web" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

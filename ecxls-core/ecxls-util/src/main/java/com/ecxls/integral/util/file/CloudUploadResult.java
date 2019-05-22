@@ -1,0 +1,40 @@
+package com.ecxls.integral.util.file;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CloudUploadResult {
+	
+	public final static String RETURN_KEY = "key";
+	
+	public final static String RETURN_URL = "url";
+	
+	private String type;
+	
+	private String url;
+	
+	private String localPath;
+	
+	private String mediaType;
+	
+	private String cloudType;
+	
+	private String cloudKey;
+	
+	private String cloudPath;
+	
+	private int width;
+	
+	private int height;
+	
+	private String isMain;
+	
+	private String cateId;	
+	
+	private String isCateMain;
+
+}

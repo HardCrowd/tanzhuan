@@ -1,0 +1,121 @@
+package com.ecxls.integral.util.properties;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Map.Entry;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+/**
+ * <p>ClassName: PropertiesHelper<p>
+ * <p>Description: Properties处理器<p>
+ * <p>Company:广东鑫零售投资有限公司 <p>	
+ * @author chenluning
+ * @createTime 2018年5月17日 上午10:42:56
+ */
+public class PropertiesUtil {
+	
+	private static Log log = LogFactory.getLog(PropertiesUtil.class);
+	
+	
+	private Properties objProperties;
+	
+	/**
+	 * 构造函数
+	 * @param is 属性文件输入流
+	 * @throws Exception
+	 */
+	public PropertiesUtil(InputStream is) throws Exception {
+		try{
+			objProperties = new Properties();
+			objProperties.load(is);
+		}
+		catch(FileNotFoundException e){
+			log.error("未找到属性资源文件!");
+			e.printStackTrace();
+			throw e;
+		}
+		catch(Exception e){
+			log.error("读取属性资源文件发生未知错误!");
+			e.printStackTrace();
+			throw e;
+		}finally{
+			is.close();
+		}
+	}
+	
+	/**
+	 * 获取properties所有值
+	 * @author chenluning	
+	 * @createTime 2018年5月17日 上午10:44:33
+	 * @return
+	 */
+	public Map<String,String> getAll(){
+		Iterator<Entry<Object, Object>> it = objProperties.entrySet().iterator();
+		Map<String,String> map = new HashMap<String, String>();
+		while(it.hasNext()){
+			Map.Entry<Object, Object> entry = it.next();
+			map.put(entry.getKey().toString().toLowerCase(), entry.getValue().toString());
+		}
+		return map;
+	}
+	
+	/**
+	 * 获取属性值 
+	 * @author chenluning	
+	 * @createTime 2018年5月17日 上午10:42:26
+	 * @param key 指定Key值，获取value
+	 * @return String 返回属性值
+	 */
+	public String getValue(String key){
+		return objProperties.getProperty(key);
+	}
+
+	/**
+	 * 获取属性值,支持缺省设置 
+	 * @author chenluning	
+	 * @createTime 2018年5月17日 上午10:44:52
+	 * @param key
+	 * @param defaultValue 缺省值
+	 * @return String 返回属性值
+	 */
+	public String getValue(String key, String defaultValue){
+		return objProperties.getProperty(key, defaultValue);
+	}
+	
+	/**
+	 * 删除属性 
+	 * @author chenluning	
+	 * @createTime 2018年5月17日 上午10:45:33
+	 * @param key 属性Key
+	 */
+	public void removeProperty(String key){
+		objProperties.remove(key);
+	}
+	
+	/**
+	 * 设置属性 
+	 * @author chenluning	
+	 * @createTime 2018年5月17日 上午10:45:55
+	 * @param key 属性Key
+	 * @param value 属性值
+	 */
+	public void setProperty(String key, String value){
+		objProperties.setProperty(key, value);
+	}
+	
+    /**
+     * 打印所有属性值 
+     * @author chenluning	
+     * @createTime 2018年5月17日 上午10:46:18
+     */
+	public void printAllVlue(){
+		 objProperties.list(System.out);
+	}
+	
+}

@@ -1,0 +1,57 @@
+package com.ecxls.integral.template.json;
+
+import org.springframework.stereotype.Component;
+
+/**
+ * 生成 JsonResponse 结果
+ * 用法:需要在模块扫描注入此工具类
+ * <p>@Author luo</p>
+ * <p>@Date 2017年3月20日</p>
+ * <p>@Version</p>
+ */
+@Component
+public class ResultUtil {
+	
+	private static final String VERSION = "1.0";
+	
+	private static final String SUCCESS = "200";
+
+	/**  
+	 * <p>Title: ok</p>  
+	 * <p>Description:成功并且有数据 </p>  
+	 * @param num
+	 * @param message
+	 * @param data
+	 * @param version
+	 * @return  
+	 */  
+	public static <T>JsonResponse<T> ok(String num,String message,T data, String version){
+		return new JsonResponse<T>(SUCCESS, num, message, data, version);
+	}
+	
+	public static <T>JsonResponse<T> ok(String num,String message,T data){
+		return new JsonResponse<T>(SUCCESS, num, message, data, VERSION);
+	}
+	
+	/**  
+	 * <p>Title: ok</p>  
+	 * <p>Description: 成功但没有数据返回</p>  
+	 * @param num
+	 * @param message
+	 * @return  
+	 */  
+	public static <T>JsonResponse<T> ok(String num,String message){
+		return new JsonResponse<T>(SUCCESS, num, message,VERSION);
+	}
+	
+	public static <T>JsonResponse<T> error(String code,String num,String message,T data){
+		return new JsonResponse<T>(code, num, message, data, VERSION);
+	}
+	
+	public static <T>JsonResponse<T> error(String code,String num,String message){
+		return new JsonResponse<T>(code, num, message,VERSION);
+	}
+	
+	
+	
+}

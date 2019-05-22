@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Implementation-Title: ecxls-util
+Implementation-Version: 0.0.1-SNAPSHOT
+Built-By: DH003
+Implementation-Vendor-Id: com.ecxls
+Build-Jdk: 1.8.0_171
+Implementation-URL: https://projects.spring.io/spring-boot/#/spring-bo
+ ot-starter-parent/ecxls-core/ecxls-util
+Created-By: Maven Integration for Eclipse
+

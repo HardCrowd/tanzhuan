@@ -1,0 +1,231 @@
+package com.ecxls.integral.util.pinyin;
+
+import com.ecxls.integral.util.exception.EcxlsException;
+import com.ecxls.integral.util.string.StringUtils;
+
+import net.sourceforge.pinyin4j.PinyinHelper;
+import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
+import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
+import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
+import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
+import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
+
+/**
+ * <p>ClassName: PinyinAbstract<p>
+ * <p>Description: 中文转拼音处理抽象类<p>
+ * <p>Company:广东鑫零售投资有限公司 <p>	
+ * @author chenluning
+ * @createTime 2018年5月31日 下午3:29:43
+ */
+public class PinyinUtils {
+	
+	//拼音格式化对象
+	private HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
+
+	/**
+	 * 实例化Pinyin format.默认设置isUpperCase：false,isReplaceToV：false,isShowTone：false
+	 */
+	public PinyinUtils(){
+		this(false, false, false);
+	}
+	
+	/**
+	 * 有参的构造方法生成Pinyin类对象，调用该类里面的方法
+	 * @param isUpperCase		是否大写显示（默认小写）
+	 * @param isReplaceToV		是否把特殊拼音字符改为V
+	 * @param isShowTone		是否显示声调（1,2,3,4）
+	 */
+	public PinyinUtils(boolean isUpperCase,boolean  isReplaceToV,boolean isShowTone){
+		this.setPinyinFormat(isUpperCase, isReplaceToV, isShowTone);
+	}
+	
+	/**
+	 * 
+	 * 构造转换拼音 ，返回第一个音标的拼音
+	 * @param c	字符
+	 * @return	转换为拼音的字符串
+	 * @throws EcxlsException
+	 */
+	private String makePinyin(char c) throws EcxlsException{
+		try {
+			String[] hanyuPinyinStringArray = PinyinHelper.toHanyuPinyinStringArray(c, this.format);
+			if(null != hanyuPinyinStringArray && hanyuPinyinStringArray.length > 0){
+				return hanyuPinyinStringArray[0];
+			}else{
+				return Character.toString(c);
+			}
+		} catch (BadHanyuPinyinOutputFormatCombination e) {
+			throw new EcxlsException(e);
+		}
+	}
+	
+	/**
+	 * 
+	 * 构造转换拼音 		
+	 * @param charArray	字符数组
+	 * @return	拼音字符串数组
+	 * @throws EcxlsException
+	 */
+	private String[] makePinyin(char[] charArray) throws EcxlsException{
+		String[] temp = new String[charArray.length];
+		for (int i = 0; i < temp.length; i++) {
+				temp[i] = this.makePinyin(charArray[i]);
+		}
+		return temp;
+	}
+	
+	/**
+	 * 
+	 * 转换为拼音并截取第一个字母
+	 * @param c	字符
+	 * @return	拼音第一个字母
+	 * @throws EcxlsException
+	 */
+	private String makeHeadPinyin(char c) throws EcxlsException{
+		return Character.toString(this.makePinyin(c).charAt(0));
+	}
+	
+	/**
+	 * 转换为拼音并截取第一个字母
+	 * @param charArray	字符数组
+	 * @return	包含第一个拼音字母的字符串数组
+	 * @throws EcxlsException
+	 */
+	private String[] makeHeadPinyin(char[] charArray) throws EcxlsException{
+		String[] temp = new String[charArray.length];
+		for (int i = 0; i < temp.length; i++) {
+				temp[i] = this.makeHeadPinyin(charArray[i]);
+		}
+		return temp;
+	}
+	
+	/**
+	 * 把中文字符串转为拼音字符串数组返回
+	 * @param str	要转换的字符串
+	 * @return 已转换为拼音的字符串数组
+	 * @throws EcxlsException 
+	 */
+	public String[] getPinyin(String str) throws EcxlsException{
+		return this.makePinyin(str.toCharArray());
+	}
+	
+	/**
+	 * 把中文字符串转为拼音特殊符号隔开，字符串返回
+	 * @param str	中文字符串
+	 * @param spit	分隔符
+	 * @return	以参数spit设置的分隔符分隔结果
+	 * @throws EcxlsException 
+	 */
+	public String getPinyin(String str,String spit) throws EcxlsException{
+		return StringUtils.join(this.getPinyin(str), spit);
+	}
+	
+	/**
+	 * 把中文字符转为拼音字符串返回
+	 * @param str	中文字符
+	 * @return	拼音字符串
+	 * @throws EcxlsException
+	 */
+	public String getPinyin(char str) throws EcxlsException{
+		return this.makePinyin(str);
+	}
+	
+	/**
+	 * 把中文字符转为拼音字符串数组返回
+	 * @param str	中文字符数组
+	 * @return 拼音字符串数组
+	 * @throws EcxlsException
+	 */
+	public String[] getPinyin(char[] str) throws EcxlsException{
+		return this.makePinyin(str);
+	}
+	
+	/**
+	 * 把中文字符数组转为拼音字符串特殊符号隔开，字符串返回
+	 * @param str	中文字符数组
+	 * @param spit	分隔符
+	 * @return	拼音字符串
+	 * @throws EcxlsException
+	 */
+	public String getPinyin(char[] str,String spit) throws EcxlsException{
+		return StringUtils.join(this.makePinyin(str), spit);
+	}
+	
+	/**
+	 * 获取中文字符串中各个中文的首字母，字符串数组返回
+	 * @param str	中文字符串
+	 * @return	拼音首字母字符串数组
+	 * @throws EcxlsException
+	 */
+	public String[] getPinyinHeadChar(String str) throws EcxlsException{
+		return this.makeHeadPinyin(str.toCharArray());
+	}
+	
+	/**
+	 * 获取中文字符串中各个中文的首字母，特殊符号隔开，字符串返回
+	 * @param str	中文字符串
+	 * @param spit	分隔符
+	 * @return	以参数spit设置的分隔符分隔结果
+	 * @throws EcxlsException
+	 */
+	public String getPinyinHeadChar(String str,String spit) throws EcxlsException{
+		return StringUtils.join(this.makeHeadPinyin(str.toCharArray()), spit);
+	}
+	
+	/**
+	 * 获取中文字符数组的首字母，字符串数组返回
+	 * @param str	中文字符串数组
+	 * @return	拼音首字母字符串数组
+	 * @throws EcxlsException
+	 */
+	public String[] getPinyinHeadChar(char[] str) throws EcxlsException{
+		return this.makeHeadPinyin(str);
+	}
+	
+	/**
+	 * 获取中文字符数组的首字母，特殊符号隔开，字符串返回
+	 * @param str	中文字符数组
+	 * @param spit	分隔符
+	 * @return	以参数spit设置的分隔符分隔结果
+	 * @throws EcxlsException
+	 */
+	public String getPinyinHeadChar(char[] str,String spit) throws EcxlsException{
+		return StringUtils.join(this.makeHeadPinyin(str), spit);
+	}
+	
+	/**
+	 * 获取中文字符的首字母，字符串返回
+	 * @param str	中文字符
+	 * @return	拼音字首字母符串
+	 * @throws EcxlsException
+	 */
+	public String getPinyinHeadChar(char str) throws EcxlsException{
+		return this.makeHeadPinyin(str);
+	}
+	
+	/**
+	 * 设置汉字转拼音属性
+	 * @param isUpperCase	格式化拼音大小写设置；true：大写，false：小写
+	 * @param isReplaceToV	特殊拼音u、v输出设置；true：u，false：v
+	 * @param isShowTone	是否输出音标设置；true：输出，false：不输出
+	 */
+	public void setPinyinFormat(boolean isUpperCase,boolean  isReplaceToV,boolean isShowTone){
+		if(isUpperCase){
+			format.setCaseType(HanyuPinyinCaseType.UPPERCASE);
+		}else{
+			format.setCaseType(HanyuPinyinCaseType.LOWERCASE);
+		}
+		
+		if(isReplaceToV){
+			format.setVCharType(HanyuPinyinVCharType.WITH_U_UNICODE);
+		}else{
+			format.setVCharType(HanyuPinyinVCharType.WITH_V);
+		}
+		
+		if(isShowTone){
+			format.setToneType(HanyuPinyinToneType.WITH_TONE_NUMBER);
+		}else{
+			format.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
+		}
+	}
+}

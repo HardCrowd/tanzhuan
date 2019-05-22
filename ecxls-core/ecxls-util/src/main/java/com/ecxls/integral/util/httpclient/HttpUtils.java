@@ -1,0 +1,457 @@
+package com.ecxls.integral.util.httpclient;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.zip.GZIPInputStream;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpHost;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
+/**
+ * 
+ * <p>ClassName: HttpUtils<p>
+ * <p>Description: http请求工具类<p>
+ * <p>Company:广东鑫零售投资有限公司 <p>	
+ * @author chenluning
+ * @createTime 2018年10月26日 下午2:28:49
+ */
+public class HttpUtils {
+	public static final String POST = "POST";
+	public static final String GET = "GET";
+
+	private static final int CONNECT_TIMEOUT = 10000;
+	private static final int SO_TIMEOUT = 60000;
+
+	public final static RequestConfig DEFAULTREQUESTCONFIG = RequestConfig.custom()
+			.setSocketTimeout(SO_TIMEOUT).setConnectTimeout(CONNECT_TIMEOUT)
+			.setConnectionRequestTimeout(CONNECT_TIMEOUT)
+			.setStaleConnectionCheckEnabled(true)
+			.build();
+
+	private static final CloseableHttpClient httpClient;
+	static {
+		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+		cm.setMaxTotal(200);
+		cm.setDefaultMaxPerRoute(50);
+		httpClient = HttpClients.custom().setDefaultRequestConfig(DEFAULTREQUESTCONFIG).setConnectionManager(cm).build();
+	}
+
+	public static String connection(String url, String method) {
+		return connection(url, method, new ArrayList<BasicNameValuePair>());
+	}
+
+	public static String connection(String url, String method, ArrayList<BasicNameValuePair> pair) {
+		return connection(url, method, pair, null, null);
+	}
+
+	public static String connectionZip(String url, String method) {
+		return connectionZip(url, method, new ArrayList<BasicNameValuePair>());
+	}
+
+	public static String connectionZip(String url, String method, ArrayList<BasicNameValuePair> pair) {
+		return connectionZip(url, method, pair, null, null);
+	}
+
+	public static String connection(String url, String method, Header[] heads) {
+
+		HttpRequestBase httpRequest = null;
+		if (POST.equals(method)) {
+			httpRequest = new HttpPost(url);
+		} else if (GET.equals(method)) {
+			httpRequest = new HttpGet(url);
+		}
+		RequestConfig requestConfig = RequestConfig.copy(DEFAULTREQUESTCONFIG).build();
+		httpRequest.setConfig(requestConfig);
+		httpRequest.setHeaders(heads);
+		CloseableHttpResponse execute = null;
+		String result = "";
+		try {
+			execute = httpClient.execute(httpRequest);
+			result = EntityUtils.toString(execute.getEntity(), "UTF-8");
+		} catch (Exception e) {
+			
+		} finally {
+
+			IOUtils.closeQuietly(execute);
+
+		}
+		return result;
+	}
+
+	public static String connection(String url, String method, String value) {
+		return connection(url, method, value, null);
+	}
+	
+	public static String connection(String url, String method, String value, Header[] heads) {
+		HttpRequestBase httpRequest = null;
+		if (POST.equals(method)) {
+			httpRequest = new HttpPost(url);
+			HttpPost post = (HttpPost) httpRequest;
+			post.setEntity(new StringEntity(value, "UTF-8"));
+		} else if (GET.equals(method)) {
+			httpRequest = new HttpGet(url);
+		}
+		RequestConfig requestConfig = RequestConfig.copy(DEFAULTREQUESTCONFIG).build();
+		httpRequest.setConfig(requestConfig);
+		httpRequest.setHeaders(heads);
+		//httpRequest.setHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+		CloseableHttpResponse execute = null;
+		String result = "";
+		try {
+			execute = httpClient.execute(httpRequest);
+			result = EntityUtils.toString(execute.getEntity(), "UTF-8");
+		} catch (Exception e) {
+		} finally {
+			IOUtils.closeQuietly(execute);
+		}
+		return result;
+	}
+	
+	
+	public static String connectionContentType(String url, String method, String value, String contentType) {
+		HttpRequestBase httpRequest = null;
+		if (POST.equals(method)) {
+			httpRequest = new HttpPost(url);
+			HttpPost post = (HttpPost) httpRequest;
+			post.setEntity(new StringEntity(value, "UTF-8"));
+		} else if (GET.equals(method)) {
+			httpRequest = new HttpGet(url);
+		}
+		RequestConfig requestConfig = RequestConfig.copy(DEFAULTREQUESTCONFIG).build();
+		httpRequest.setConfig(requestConfig);
+		httpRequest.setHeader("Content-Type", contentType);
+		CloseableHttpResponse execute = null;
+		String result = "";
+		try {
+			execute = httpClient.execute(httpRequest);
+			result = EntityUtils.toString(execute.getEntity(), "UTF-8");
+		} catch (Exception e) {
+		} finally {
+			IOUtils.closeQuietly(execute);
+		}
+		return result;
+	}
+
+	public static String connectionZip(String url, String method, Header[] heads) {
+		HttpRequestBase httpRequest = null;
+		if (POST.equals(method)) {
+			httpRequest = new HttpPost(url);
+		} else if (GET.equals(method)) {
+			httpRequest = new HttpGet(url);
+		}
+		RequestConfig requestConfig = RequestConfig.copy(DEFAULTREQUESTCONFIG).build();
+		httpRequest.setConfig(requestConfig);
+		httpRequest.setHeaders(heads);
+		CloseableHttpResponse execute = null;
+		StringBuilder builder = new StringBuilder();
+
+		InputStream content = null;
+		GZIPInputStream gzipInputStream = null;
+		BufferedReader inputStream = null;
+		InputStreamReader inputStreamReader = null;
+		try {
+			execute = httpClient.execute(httpRequest);
+			content = execute.getEntity().getContent();
+			gzipInputStream = new GZIPInputStream(content);
+			inputStreamReader = new InputStreamReader(gzipInputStream);
+			inputStream = new BufferedReader(inputStreamReader);
+			String line = null;
+			while ((line = inputStream.readLine()) != null) {
+				builder.append(line);
+			}
+		} catch (Exception e) {
+		} finally {
+
+			IOUtils.closeQuietly(content);
+			IOUtils.closeQuietly(gzipInputStream);
+			IOUtils.closeQuietly(inputStreamReader);
+			IOUtils.closeQuietly(inputStream);
+			IOUtils.closeQuietly(execute);
+
+		}
+		return builder.toString();
+	}
+
+	public static String connectionZip(String url, String method, String value) {
+		HttpRequestBase httpRequest = null;
+		if (POST.equals(method)) {
+			httpRequest = new HttpPost(url);
+			HttpPost post = (HttpPost) httpRequest;
+			post.setEntity(new StringEntity(value, "UTF-8"));
+		} else if (GET.equals(method)) {
+			httpRequest = new HttpGet(url);
+		}
+		RequestConfig requestConfig = RequestConfig.copy(DEFAULTREQUESTCONFIG).build();
+		httpRequest.setConfig(requestConfig);
+		CloseableHttpResponse execute = null;
+		StringBuilder builder = new StringBuilder();
+
+		InputStream content = null;
+		GZIPInputStream gzipInputStream = null;
+		BufferedReader inputStream = null;
+		InputStreamReader inputStreamReader = null;
+		try {
+			execute = httpClient.execute(httpRequest);
+			content = execute.getEntity().getContent();
+			gzipInputStream = new GZIPInputStream(content);
+			inputStreamReader = new InputStreamReader(gzipInputStream);
+			inputStream = new BufferedReader(inputStreamReader);
+			String line = null;
+			while ((line = inputStream.readLine()) != null) {
+				builder.append(line);
+			}
+		} catch (Exception e) {
+		} finally {
+			IOUtils.closeQuietly(content);
+			IOUtils.closeQuietly(gzipInputStream);
+			IOUtils.closeQuietly(inputStreamReader);
+			IOUtils.closeQuietly(inputStream);
+			IOUtils.closeQuietly(execute);
+		}
+		return builder.toString();
+	}
+
+	public static String connection(String url, String method, ArrayList<BasicNameValuePair> pair, ArrayList<Header> headers, CookieStore cookie) {
+		HttpResult httpResult = connectionWithCookie(url, method, pair, headers, cookie, null);
+		if (httpResult == null) {
+			return null;
+		}else{
+			return httpResult.getResult();
+		}
+	}
+
+	public static String connectionZip(String url, String method, ArrayList<BasicNameValuePair> pair, ArrayList<Header> headers, CookieStore cookie) {
+		HttpResult httpResult = connectionWithCookieZip(url, method, pair, headers, cookie, null);
+		if (httpResult == null) {
+			return null;
+		}else{
+			return httpResult.getResult();
+		}
+	}
+
+	public static HttpResult connectionWithCookieZip(String url, String method, ArrayList<BasicNameValuePair> pair, ArrayList<Header> headers, CookieStore cookie) {
+		return connectionWithCookieZip(url, method, pair, headers, cookie, null);
+	}
+
+	public static HttpResult connectionWithCookieZip(String url, String method, ArrayList<BasicNameValuePair> pair, ArrayList<Header> headers, CookieStore cookie, HttpHost httpHost) {
+		HttpRequestBase httpRequest = null;
+		if (POST.equals(method)) {
+			httpRequest = new HttpPost(url);
+			if (pair != null) {
+				HttpPost post = (HttpPost) httpRequest;
+				try {
+					if (pair != null) {
+						post.setEntity(new UrlEncodedFormEntity(pair, "UTF-8"));
+					}
+				} catch (UnsupportedEncodingException e) {
+				}
+			}
+		} else if (GET.equals(method)) {
+			httpRequest = new HttpGet(url);
+		}
+		RequestConfig build = null;
+		if (httpHost != null) {
+			build = RequestConfig.copy(DEFAULTREQUESTCONFIG).setProxy(httpHost).build();
+		} else {
+			build = RequestConfig.copy(DEFAULTREQUESTCONFIG).build();
+		}
+		RequestConfig requestConfig = build;
+		httpRequest.setConfig(requestConfig);
+		if (headers != null && headers.size() > 0) {
+			Header[] header = new Header[headers.size()];
+			headers.toArray(header);
+			httpRequest.setHeaders(header);
+		}
+
+		HttpClientContext context = HttpClientContext.create();
+		if (cookie != null && cookie.getCookies().size() > 0) {
+			context.setCookieStore(cookie);
+		}
+
+		CloseableHttpResponse execute = null;
+		StringBuilder builder = new StringBuilder();
+		HttpResult httpResult = null;
+
+		InputStream content = null;
+		GZIPInputStream gzipInputStream = null;
+		BufferedReader inputStream = null;
+		InputStreamReader inputStreamReader = null;
+		try {
+			execute = httpClient.execute(httpRequest, context);
+			CookieStore cookieStore = context.getCookieStore();
+			content = execute.getEntity().getContent();
+			gzipInputStream = new GZIPInputStream(content);
+			inputStreamReader = new InputStreamReader(gzipInputStream);
+			inputStream = new BufferedReader(inputStreamReader);
+			String line = null;
+			while ((line = inputStream.readLine()) != null) {
+				builder.append(line);
+			}
+			httpResult = new HttpResult(builder.toString(), cookieStore);
+		} catch (Exception e) {
+
+		} finally {
+			IOUtils.closeQuietly(content);
+			IOUtils.closeQuietly(gzipInputStream);
+			IOUtils.closeQuietly(inputStreamReader);
+			IOUtils.closeQuietly(inputStream);
+			IOUtils.closeQuietly(execute);
+		}
+		return httpResult;
+	}
+
+	public static HttpResult connectionWithCookie(String url, String method, ArrayList<BasicNameValuePair> pair, ArrayList<Header> headers, CookieStore cookie) {
+		return connectionWithCookie(url, method, pair, headers, cookie, null);
+	}
+
+	public static HttpResult connectionWithCookie(String url, String method, ArrayList<BasicNameValuePair> pair, ArrayList<Header> headers, CookieStore cookie, HttpHost httpHost) {
+		HttpRequestBase httpRequest = null;
+		if (POST.equals(method)) {
+			httpRequest = new HttpPost(url);
+			if (pair != null) {
+				HttpPost post = (HttpPost) httpRequest;
+				try {
+					if (pair != null) {
+						post.setEntity(new UrlEncodedFormEntity(pair, "UTF-8"));
+					}
+				} catch (UnsupportedEncodingException e) {
+				}
+			}
+		} else if (GET.equals(method)) {
+			httpRequest = new HttpGet(url);
+		}
+
+		RequestConfig build = null;
+		if (httpHost != null) {
+			build = RequestConfig.copy(DEFAULTREQUESTCONFIG).setProxy(httpHost).build();
+		} else {
+			build = RequestConfig.copy(DEFAULTREQUESTCONFIG).build();
+		}
+		httpRequest.setConfig(build);
+		if (headers != null && headers.size() > 0) {
+			Header[] header = new Header[headers.size()];
+			headers.toArray(header);
+			httpRequest.setHeaders(header);
+		}
+
+		HttpClientContext context = HttpClientContext.create();
+		if (cookie != null && cookie.getCookies().size() > 0) {
+			context.setCookieStore(cookie);
+		}
+
+		CloseableHttpResponse execute = null;
+		HttpResult httpResult = null;
+
+		try {
+			execute = httpClient.execute(httpRequest, context);
+			CookieStore cookieStore = context.getCookieStore();
+			String result = EntityUtils.toString(execute.getEntity(), "UTF-8");
+			httpResult = new HttpResult(result, cookieStore);
+		} catch (Exception e) {
+		} finally {
+			IOUtils.closeQuietly(execute);
+		}
+		return httpResult;
+	}
+	
+	public static HttpResult connectionWithCookieZipWithTimeOut(String url, String method, ArrayList<BasicNameValuePair> pair, ArrayList<Header> headers,
+			CookieStore cookie, HttpHost httpHost,Integer socketTimeout,Integer connectTimeout) {
+		if(socketTimeout == null){
+			socketTimeout = SO_TIMEOUT;
+		}
+		
+		if(connectTimeout == null){
+			connectTimeout = CONNECT_TIMEOUT;
+		}
+		
+		RequestConfig request_config = RequestConfig.custom()
+				.setSocketTimeout(socketTimeout)
+				.setConnectTimeout(connectTimeout)
+				.setConnectionRequestTimeout(connectTimeout)
+				.setStaleConnectionCheckEnabled(true)
+				.build();
+		HttpRequestBase httpRequest = null;
+		if (POST.equals(method)) {
+			httpRequest = new HttpPost(url);
+			if (pair != null) {
+				HttpPost post = (HttpPost) httpRequest;
+				try {
+					if (pair != null) {
+						post.setEntity(new UrlEncodedFormEntity(pair, "UTF-8"));
+					}
+				} catch (UnsupportedEncodingException e) {
+
+				}
+			}
+		} else if (GET.equals(method)) {
+			httpRequest = new HttpGet(url);
+		}
+		RequestConfig build = null;
+		if (httpHost != null) {
+			build = RequestConfig.copy(request_config).setProxy(httpHost).build();
+		} else {
+			build = RequestConfig.copy(request_config).build();
+		}
+		RequestConfig requestConfig = build;
+		httpRequest.setConfig(requestConfig);
+		if (headers != null && headers.size() > 0) {
+			Header[] header = new Header[headers.size()];
+			headers.toArray(header);
+			httpRequest.setHeaders(header);
+		}
+
+		HttpClientContext context = HttpClientContext.create();
+		if (cookie != null && cookie.getCookies().size() > 0) {
+			context.setCookieStore(cookie);
+		}
+
+		CloseableHttpResponse execute = null;
+		StringBuilder builder = new StringBuilder();
+		HttpResult httpResult = null;
+
+		InputStream content = null;
+		GZIPInputStream gzipInputStream = null;
+		BufferedReader inputStream = null;
+		InputStreamReader inputStreamReader = null;
+		try {
+			execute = httpClient.execute(httpRequest, context);
+			CookieStore cookieStore = context.getCookieStore();
+			content = execute.getEntity().getContent();
+			gzipInputStream = new GZIPInputStream(content);
+			inputStreamReader = new InputStreamReader(gzipInputStream);
+			inputStream = new BufferedReader(inputStreamReader);
+			String line = null;
+			while ((line = inputStream.readLine()) != null) {
+				builder.append(line);
+			}
+			httpResult = new HttpResult(builder.toString(), cookieStore);
+		} catch (Exception e) {
+			
+		} finally {
+			IOUtils.closeQuietly(content);
+			IOUtils.closeQuietly(gzipInputStream);
+			IOUtils.closeQuietly(inputStreamReader);
+			IOUtils.closeQuietly(inputStream);
+			IOUtils.closeQuietly(execute);
+		}
+		return httpResult;
+	}
+}
